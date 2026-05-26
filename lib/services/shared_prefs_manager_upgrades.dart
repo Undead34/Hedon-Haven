@@ -66,8 +66,6 @@ Future<bool> startUpgrade(String currentVersion) async {
         // A small bug caused all entries since 0.6.4 to be invalid
         await purgeDatabase();
         break;
-      case "0.6.5":
-        break;
       default:
         logger.e("Unknown version: $currentVersion. Not changing anything");
     }
