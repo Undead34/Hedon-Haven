@@ -12,17 +12,24 @@ import 'plugin_manager.dart';
 /// -> download at runtime and store in cache
 Future<void> downloadPluginIcons({bool force = false}) async {
   int counter = (await sharedStorage.getInt("general_icon_cache_counter"))!;
-  if (counter != 5 && !force) {
+  Directory cacheDir =
+      Directory(p.join((await getApplicationCacheDirectory()).path, "icons"));
+  bool dirEmpty = !(await cacheDir.exists()) || await cacheDir.list().isEmpty;
+
+  if (!force && !dirEmpty && counter != 5) {
     logger.i("Icon cache counter is $counter (not 5). Skipping icon download.");
     sharedStorage.setInt("general_icon_cache_counter", counter + 1);
     return;
   }
-  if (force) {
+
+  if (dirEmpty) {
+    logger.i("Icon cache is empty. Downloading plugin icons");
+  } else if (force) {
     logger.i("Force downloading plugin icons");
+  } else {
+    logger.i("Icon cache counter is 5. Downloading plugin icons");
   }
-  logger.i("Icon cache counter is 5. Downloading plugin icons");
-  Directory cacheDir =
-      Directory(p.join((await getApplicationCacheDirectory()).path, "icons"));
+
   // Create icon cache dir if it doesn't exist
   if (!(await cacheDir.exists())) {
     await cacheDir.create();
