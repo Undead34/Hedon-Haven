@@ -1268,8 +1268,12 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
               .trim();
         }
       } else {
-        authorName =
-            pageHtml.querySelector('div[class="channelName"]')!.text.trim();
+        authorName = pageHtml
+            .querySelector('div[class="channelName"]')!
+            .text
+            .trim()
+            .split("\n")
+            .first;
         description = pageHtml
             .querySelector('div[class="wrapper"]')
             ?.text
