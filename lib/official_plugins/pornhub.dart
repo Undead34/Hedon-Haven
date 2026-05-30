@@ -522,7 +522,7 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
           iD: uri.queryParameters["viewkey"]!,
         );
 
-      case "/channels/" || "/model/" || "/pornstar/":
+      case _ when {"channels", "model", "pornstar"}.contains(uri.pathSegments.first):
         return ExternalLinkParsed(
           type: ContentType.authorPage,
           iD: uri.pathSegments.last,

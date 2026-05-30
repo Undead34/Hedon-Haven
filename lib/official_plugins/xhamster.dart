@@ -312,7 +312,7 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
           iD: uri.pathSegments.last.split("-").last,
         );
 
-      case "/creators/" || "/channels/" || "/users/":
+      case _ when {"creators", "channels", "users"}.contains(uri.pathSegments.first):
         return ExternalLinkParsed(
           type: ContentType.authorPage,
           iD: uri.pathSegments.last,
