@@ -994,7 +994,12 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
               externalLinks ??= {};
               if (item.isNotEmpty) {
                 item.forEach((key, value) {
-                  externalLinks![key] = Uri.parse(value);
+                  if (key == "fapHouseMirror") {
+                    externalLinks!["FapHouse"] = Uri.parse(value["urlLanding"]);
+                  } else {
+                    externalLinks![key[0].toUpperCase() + key.substring(1)] =
+                        Uri.parse(value);
+                  }
                 });
               }
               break;
