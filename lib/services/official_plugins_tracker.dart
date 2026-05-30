@@ -29,7 +29,7 @@ Future<PluginInterface?> getOfficialPluginByName(String codename) async {
 Future<OfficialPlugin?> getOfficialPluginByNameAsOfficialPlugin(
     String codename) async {
   switch (codename) {
-    case "tester-official":
+    case "com.hedon_haven.tester_internal":
       if (!(await sharedStorage.getBool("general_enable_dev_options"))!) {
         logger.e("Tester plugin requested in non-debug mode");
         throw Exception("Tester plugin requested in non-debug mode");
