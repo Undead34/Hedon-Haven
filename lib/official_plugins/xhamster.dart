@@ -114,7 +114,7 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
     },
     "testingVideos": [
       // This is an old video that uses the old progress thumbnail format
-      {"videoID": "13942649", "progressThumbnailsAmount": 755},
+      {"videoID": "13942649", "progressThumbnailsAmount": 105},
       // This is a more recent video from the homepage
       {"videoID": "xhZiTRT", "progressThumbnailsAmount": 779}
     ],
@@ -577,27 +577,18 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
       // Not quite sure what this is needed for, but fails otherwise
       BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
 
-      // Get the video javascript
-      String jscript = rawHtml.querySelector("#initials-script")!.text;
+      // Get the video json
+      String jscript = rawHtml.querySelector('#initials-script')!.text;
+      Map<String, dynamic> jscriptMap = jsonDecode(
+          jscript.substring(jscript.indexOf("{"), jscript.indexOf('};') + 1));
 
-      // Extract the progressImage url from jscript
-      int startIndex = jscript.indexOf('"template":"') + 12;
-      int endIndex = jscript.substring(startIndex).indexOf('","');
-      String imageUrl = jscript.substring(startIndex, startIndex + endIndex);
-      String imageBuildUrl = imageUrl.replaceAll("\\/", "/");
+      String imageBuildUrl =
+          jscriptMap["xplayerPluginSettings"]["spriteLoader"]["template"];
+
       logPort.send(["debug", imageBuildUrl]);
 
       // Extract the video duration
-      int startIndexDuration = jscript.lastIndexOf('"duration":') + 11;
-      int endIndexDuration =
-          jscript.substring(startIndexDuration).indexOf(',"');
-      String durationInString = jscript.substring(
-          startIndexDuration, startIndexDuration + endIndexDuration);
-      logPort.send([
-        "debug",
-        "Trying to parse video length in seconds to an int: $durationInString"
-      ]);
-      int duration = int.parse(durationInString);
+      int duration = jscriptMap["xplayerSettings"]["duration"];
 
       // Extract the width of the individual preview image from the baseUrl
       String imageWidthString = imageBuildUrl.split("/").last.split(".")[0];
@@ -620,23 +611,22 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
       if (imageBuildUrl.endsWith("%d.webp")) {
         isOldFormat = false;
         suffix = ".${imageBuildUrl.split(".").last}";
-        logPort.send(["debug", suffix]);
+        logPort.send(["debug", "suffix $suffix"]);
         baseUrl = imageBuildUrl.split("%d").first;
-        logPort.send(["debug", baseUrl]);
+        logPort.send(["debug", "baseUrl: $baseUrl"]);
         // from limited testing it seems as if the sampling frequency is always 4 in the new format, but have this just in case
         // Although usually the sampling frequency is not 4.0, but rather something like 4.003
         // For some reason xhamster just ignores that and uses a whole number resulting in drift at the end in long videos.
         samplingFrequency =
             int.parse(imageBuildUrl.split("/").last.split(".")[1]);
-        logPort.send(["debug", "Sampling frequency: $samplingFrequency"]);
         // Each combined image contains 50 images
         lastImageIndex = duration ~/ samplingFrequency ~/ 50;
       }
       logPort.send(["debug", "Is old format: $isOldFormat"]);
       logPort.send(["debug", "Sampling frequency: $samplingFrequency"]);
+      logPort.send(["debug", "lastImageIndex: $lastImageIndex"]);
 
       logPort.send(["info", "Downloading and processing progress images"]);
-      logPort.send(["debug", "lastImageIndex: $lastImageIndex"]);
       List<List<Uint8List>> allThumbnails =
           List.generate(lastImageIndex + 1, (_) => []);
       List<Future<void>> imageFutures = [];
