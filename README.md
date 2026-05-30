@@ -40,6 +40,8 @@ An adult content aggregator app.
 4. Get the dependencies: `flutter pub get`
 5. Generate mocks: `flutter pub run build_runner build`
 6. Run the tests: `flutter test`
+    - To test just one plugin, set the `PLUGIN` environment variable:
+      `PLUGIN=com.hedon_haven.tester_internal flutter test`
 
 ## Credit
 
