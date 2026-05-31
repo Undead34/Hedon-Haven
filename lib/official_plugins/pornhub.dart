@@ -775,8 +775,8 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
 
     Map<int, Uri> m3u8Map = {};
     for (Map<String, dynamic> video in jscriptMap["mediaDefinitions"]) {
+      // the last item is a List of all qualities -> ignore it
       if (video["format"] == "hls") {
-        // the last quality is a List of all qualities -> ignore it
         var quality = video["quality"];
         if (quality.runtimeType == String) {
           m3u8Map[int.parse(quality)] = Uri.parse(video["videoUrl"]);
