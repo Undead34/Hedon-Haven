@@ -41,7 +41,7 @@ class _PluginsScreenState extends State<PluginsScreen> {
       PluginManager.getFailedPlugins(),
       PluginManager.getUpdatablePlugins()
     ).wait;
-    if (context.mounted) {
+    if (mounted) {
       setState(() {
         _allPlugins = all;
         _enabledPlugins = enabled;
