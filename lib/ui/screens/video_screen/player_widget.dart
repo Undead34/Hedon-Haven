@@ -45,6 +45,14 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   String? videoPlayerError;
   double dragOffsetY = 0.0;
 
+  Offset _doubleTapPosition = Offset.zero;
+  int _leftTapCount = 0;
+  int _rightTapCount = 0;
+  bool _showLeftRipple = false;
+  bool _showRightRipple = false;
+  Timer? _leftRippleTimer;
+  Timer? _rightRippleTimer;
+
   @override
   void initState() {
     super.initState();
@@ -102,6 +110,8 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   void dispose() {
     controller.dispose();
     hideControlsTimer?.cancel();
+    _leftRippleTimer?.cancel();
+    _rightRippleTimer?.cancel();
     super.dispose();
   }
 
@@ -257,6 +267,55 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     setState(() {});
   }
 
+  void handleDoubleTap() {
+    if (!controller.value.isInitialized) return;
+    final dx = _doubleTapPosition.dx;
+    final width = MediaQuery.of(context).size.width;
+    final isLeft = dx < width / 2;
+
+    // Do not trigger in the middle-ish of the screen
+    if (dx >= width * 3 / 8 && dx <= width * 5 / 8) return;
+
+    // Stop opposite ripple if active
+    if (isLeft) {
+      _rightRippleTimer?.cancel();
+      setState(() => _showRightRipple = false);
+    } else {
+      _leftRippleTimer?.cancel();
+      setState(() => _showLeftRipple = false);
+    }
+
+    // Skip to new time
+    final newTime = controller.value.position +
+        Duration(seconds: isLeft ? -skipBy : skipBy);
+    controller.seekTo(newTime.isNegative ? Duration.zero : newTime);
+
+    // Display ripple to user
+    if (isLeft) {
+      _leftRippleTimer?.cancel();
+      setState(() {
+        // Reset tap count if ripple is not being displayed already
+        // account for the tap that triggered the new ripple
+        _leftTapCount = !_showLeftRipple ? 1 : _leftTapCount + 1;
+        _showLeftRipple = true;
+      });
+      _leftRippleTimer = Timer(const Duration(milliseconds: 800), () {
+        if (mounted) setState(() => _showLeftRipple = false);
+      });
+    } else {
+      _rightRippleTimer?.cancel();
+      setState(() {
+        // Reset tap count if ripple is not being displayed already
+        // account for the tap that triggered the new ripple
+        _rightTapCount = !_showRightRipple ? 1 : _rightTapCount + 1;
+        _showRightRipple = true;
+      });
+      _rightRippleTimer = Timer(const Duration(milliseconds: 800), () {
+        if (mounted) setState(() => _showRightRipple = false);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double maxDrag = MediaQuery.of(context).size.width * 9 / 16 * 0.4;
@@ -301,6 +360,9 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             // pass taps to elements below
             behavior: HitTestBehavior.translucent,
             onTap: showControlsOverlay,
+            onDoubleTapDown: (details) =>
+                _doubleTapPosition = details.localPosition,
+            onDoubleTap: () => handleDoubleTap(),
             onVerticalDragUpdate: !isMobile
                 ? null
                 : (details) {
@@ -578,60 +640,66 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 
   Widget buildSkipWidget() {
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Padding(
-          padding: const EdgeInsets.only(right: 100),
-          child: OverlayWidget(
-              showControls: showControls && !hidePlayControls,
-              child: CircleAvatar(
-                radius: 23,
-                backgroundColor: Colors.black.withValues(alpha: 0.2),
-                child: IconButton(
-                  splashColor: Colors.transparent,
-                  icon: const Icon(
-                    Icons.fast_rewind,
-                    size: 30.0,
-                    color: Colors.white,
+    final videoHeight =
+        MediaQuery.of(context).orientation == Orientation.landscape
+            ? MediaQuery.of(context).size.height
+            : MediaQuery.of(context).size.width * 9 / 16;
+    final halfWidth = MediaQuery.of(context).size.width / 2;
+
+    // Align relative to full video dimensions
+    final tapAlign = Alignment(
+      (_doubleTapPosition.dx / MediaQuery.of(context).size.width) * 2 - 1,
+      (_doubleTapPosition.dy / videoHeight).clamp(0.0, 1.0) * 2 - 1,
+    );
+
+    Widget ripple(bool isLeft) => Positioned.fill(
+          child: AnimatedOpacity(
+            opacity: (isLeft ? _showLeftRipple : _showRightRipple) ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Stack(children: [
+              // Full-width gradient — fades to transparent, no hard cut
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: tapAlign,
+                      radius: 0.6,
+                      colors: [Colors.white60, Colors.transparent],
+                    ),
                   ),
-                  color: Colors.white,
-                  onPressed: () {
-                    final currentTime = controller.value.position;
-                    Duration newTime = const Duration(seconds: 0);
-                    // Skipping by a negative value leads to unexpected results
-                    logger.d(currentTime.inSeconds);
-                    logger.d("Skipping by: $skipBy");
-                    if (currentTime.inSeconds > skipBy) {
-                      // multiply by -1 to skip backwards
-                      newTime = currentTime + Duration(seconds: skipBy * -1);
-                    }
-                    logger.d("Seeking to: $newTime");
-                    controller.seekTo(newTime);
-                  },
                 ),
-              ))),
-      Padding(
-          padding: const EdgeInsets.only(left: 100),
-          child: OverlayWidget(
-              showControls: showControls && !hidePlayControls,
-              child: CircleAvatar(
-                radius: 23,
-                backgroundColor: Colors.black.withValues(alpha: 0.2),
-                child: IconButton(
-                  splashColor: Colors.transparent,
-                  icon: const Icon(
-                    Icons.fast_forward,
-                    size: 30.0,
-                    color: Colors.white,
-                  ),
-                  color: Colors.white,
-                  onPressed: () {
-                    final newTime =
-                        controller.value.position + Duration(seconds: skipBy);
-                    controller.seekTo(newTime);
-                  },
+              ),
+              // Icon anchored to its half
+              Positioned(
+                left: isLeft ? 0 : halfWidth,
+                right: isLeft ? halfWidth : 0,
+                top: 0,
+                bottom: 0,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(isLeft ? Icons.fast_rewind : Icons.fast_forward,
+                        color: Colors.white, size: 46),
+                    Text(
+                        "${isLeft ? '-' : '+'}${skipBy * (isLeft ? _leftTapCount : _rightTapCount)}s",
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(blurRadius: 4, color: Colors.black54)
+                          ],
+                        )),
+                  ],
                 ),
-              )))
-    ]);
+              ),
+            ]),
+          ),
+        );
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [ripple(true), ripple(false)],
+    );
   }
 }
 
