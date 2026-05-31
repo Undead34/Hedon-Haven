@@ -568,8 +568,12 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             bufferedBarColor: Colors.grey.withValues(alpha: 0.5),
             thumbColor: Theme.of(context).colorScheme.primary,
             progress: controller.value.position,
-            buffered: controller.value.buffered.firstOrNull?.end,
-            total: controller.value.duration,
+            buffered: controller.value.isInitialized
+                ? controller.value.buffered.firstOrNull?.end
+                : null,
+            total: controller.value.isInitialized
+                ? controller.value.duration
+                : Duration.zero,
             onSeek: (duration) => controller.seekTo(duration)));
   }
 
