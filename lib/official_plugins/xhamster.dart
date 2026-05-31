@@ -944,6 +944,12 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
     Map<String, dynamic> jscriptMap = jsonDecode(
         jscript.substring(jscript.indexOf("{"), jscript.indexOf('};') + 1));
 
+    // Check if the profile is private
+    if ((pageHtml.querySelector(".status-text")?.text ?? "") ==
+        "This profile is visible to friends only") {
+      throw PrivateAuthorProfileException();
+    }
+
     // normal description
     String? shortDescription;
     if (jscriptMap["aboutMeComponent"]?["text"] != null) {

@@ -20,11 +20,18 @@ class NotFoundException implements Exception {
   String toString() => "Couldn't find whatever was requested. Soft error 404";
 }
 
+class PrivateAuthorProfileException implements Exception {
+  @override
+  String toString() => "Private author profile. Access forbidden.";
+}
+
 bool isCustomException(Exception? e) {
   if (e == null) {
     return false;
   }
   return e is AgeGateException ||
       e is BannedCountryException ||
-      e is UnreachableException;
+      e is UnreachableException ||
+      e is NotFoundException ||
+      e is PrivateAuthorProfileException;
 }
