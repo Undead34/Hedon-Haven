@@ -383,7 +383,6 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
       logger.i("Compute check detected");
       // Get entire JS code from html
       String rawJS = parse(response.body).querySelector("script")!.text;
-      logger.d("Extracted js compute check code: $rawJS");
       // modify the code so it returns the cookie
       rawJS = rawJS
           .replaceAll("document.cookie=", "return ")
