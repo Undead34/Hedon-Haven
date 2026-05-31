@@ -2,22 +2,7 @@ name: Build release
 on:
   workflow_dispatch:
 jobs:
-  get-stable-hash:
-    runs-on: ubuntu-latest
-    outputs:
-      hash: ${{ steps.get-latest-flutter-stable-hash.outputs.latest_stable_hash }}
-    steps:
-      - name: Get latest flutter stable hash
-        id: get-latest-flutter-stable-hash
-        run: |
-          latest_hash=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | jq -r '.current_release.stable')
-          # subosito/flutter-action expects a 7-digit hash
-          latest_hash=${latest_hash:0:7}
-          echo "Latest stable flutter hash (short): $latest_hash"
-          echo "latest_stable_hash=$latest_hash" >> "$GITHUB_OUTPUT"
-
   build-android:
-    needs: get-stable-hash
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,8 +20,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: "master"
-          flutter-version: ${{needs.get-stable-hash.outputs.hash}}
+          channel: "stable"
 
       - name: Disable flutter/dart analytics
         run: |
@@ -75,7 +59,6 @@ jobs:
           path: ./release/*.apk
 
   build-ios:
-    needs: get-stable-hash
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -88,8 +71,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: "master"
-          flutter-version: ${{ needs.get-stable-hash.outputs.hash }}
+          channel: "stable"
 
       - name: Building unsigned iOS release
         run: |
@@ -113,7 +95,6 @@ jobs:
           path: ./release/*.ipa
 
   build-linux-x86_64:
-    needs: get-stable-hash
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -127,8 +108,7 @@ jobs:
           sudo apt-get install -y ninja-build libgtk-3-dev mpv libmpv-dev
       - uses: subosito/flutter-action@v2
         with:
-          channel: "master"
-          flutter-version: ${{needs.get-stable-hash.outputs.hash}}
+          channel: "stable"
 
       - name: Building linux-x86_64 releases
         run: |
@@ -149,7 +129,6 @@ jobs:
           path: ./release/*.tar.gz
 
   build-linux-arm64:
-    needs: get-stable-hash
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
@@ -163,10 +142,8 @@ jobs:
           sudo apt-get install -y ninja-build libgtk-3-dev mpv libmpv-dev
       - uses: subosito/flutter-action@v2
         with:
-          channel: "master"
-          flutter-version: ${{needs.get-stable-hash.outputs.hash}}
+          channel: "stable"
 
-      # TODO: Add arm64 build
       - name: Building linux-arm64 release
         run: |
           echo "Preparing flutter"
@@ -184,7 +161,6 @@ jobs:
           path: ./release/*.tar.gz
 
   build-macos:
-    needs: get-stable-hash
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -198,8 +174,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: "master"
-          flutter-version: ${{ needs.get-stable-hash.outputs.hash }}
+          channel: "stable"
 
       - name: Downloading keystores
         uses: actions/checkout@v4
@@ -237,7 +212,6 @@ jobs:
           path: release/*.dmg
 
   build-windows-x86_64:
-    needs: get-stable-hash
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -247,8 +221,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: "master"
-          flutter-version: ${{needs.get-stable-hash.outputs.hash}}
+          channel: "stable"
 
       - name: Preparing environment
         run: |
@@ -275,7 +248,6 @@ jobs:
           path: release/*.zip
 
   build-windows-arm64:
-    needs: get-stable-hash
     runs-on: windows-11-arm
     steps:
       - uses: actions/checkout@v4
@@ -286,7 +258,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: "master"
-          flutter-version: ${{needs.get-stable-hash.outputs.hash}}
 
       - name: Preparing environment
         run: |
