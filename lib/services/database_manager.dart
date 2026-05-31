@@ -317,8 +317,8 @@ Future<void> addToWatchHistory(UniversalVideoPreview result) async {
   newEntryData.remove("scrapeFailMessage");
 
   // update values
-  newEntryData["thumbnailBinary"] = await result.plugin
-          ?.downloadThumbnail(Uri.parse(result.thumbnail ?? "")) ??
+  newEntryData["thumbnailBinary"] = await result.plugin?.downloadThumbnail(
+          Uri.parse(result.thumbnail ?? ""), result.thumbnailHttpHeaders) ??
       Uint8List(0);
   newEntryData["lastWatched"] = DateTime.now().toUtc().toString();
   newEntryData["addedOn"] = DateTime.now().toUtc().toString();
@@ -360,8 +360,8 @@ Future<void> addToFavorites(UniversalVideoPreview result) async {
   newEntryData.remove("lastWatched");
 
   // update values
-  newEntryData["thumbnailBinary"] = await result.plugin
-          ?.downloadThumbnail(Uri.parse(result.thumbnail ?? "")) ??
+  newEntryData["thumbnailBinary"] = await result.plugin?.downloadThumbnail(
+          Uri.parse(result.thumbnail ?? ""), result.thumbnailHttpHeaders) ??
       Uint8List(0);
   newEntryData["addedOn"] = DateTime.now().toUtc().toString();
 

@@ -146,9 +146,10 @@ abstract class OfficialPlugin {
   /// This is the actual function for getting thumbnails that is specific to each official plugin
   Future<void> isolateGetProgressThumbnails(SendPort sendPort);
 
-  Future<Uint8List> downloadThumbnail(Uri uri) async {
+  Future<Uint8List> downloadThumbnail(
+      Uri uri, Map<String, String>? thumbnailHttpHeaders) async {
     try {
-      var response = await client.get(uri);
+      var response = await client.get(uri, headers: thumbnailHttpHeaders);
       if (response.statusCode == 200) {
         return response.bodyBytes;
       } else {

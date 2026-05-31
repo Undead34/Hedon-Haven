@@ -312,8 +312,10 @@ class PluginInterface {
   }
 
   /// This function returns the requested thumbnail as a blob
-  Future<Uint8List> downloadThumbnail(Uri uri) async {
-    final result = await _callFunction("downloadThumbnail", [uri.toString()]);
+  Future<Uint8List> downloadThumbnail(
+      Uri uri, Map<String, String>? thumbnailHttpHeaders) async {
+    final result = await _callFunction(
+        "downloadThumbnail", [uri.toString(), thumbnailHttpHeaders]);
     final Uint8List bytes = base64Decode(result);
     return bytes;
   }
