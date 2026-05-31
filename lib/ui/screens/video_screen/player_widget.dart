@@ -124,27 +124,39 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     controller = VideoPlayerController.networkUrl(url,
         httpHeaders: widget.videoMetadata.playbackHttpHeaders ?? {});
     controller.initialize().then((value) async {
+      setState(() {});
       await controller.seekTo(oldPosition);
       if (firstPlay) {
-        logger.d("Video controller prepping for first play");
         firstPlay = false;
+        logger.d("Video controller prepping for first play");
+
         if ((await sharedStorage.getBool("media_start_in_fullscreen"))!) {
-          logger.i("Full-screening video as per settings");
-          widget.toggleFullScreen.call();
+          logger.i(
+              "Full-screening video as per settings (if not already in full-screen)");
+          if (!widget.isFullScreen) widget.toggleFullScreen.call();
+          // Schedule a setState after the toggleFullScreen call to ensure
+          // the loading spinner goes away
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() {});
+          });
         }
+
         if ((await sharedStorage.getBool("media_auto_play"))!) {
           logger.i("Auto-starting video as per settings");
           await controller.play();
           hideControlsOverlay();
           return; // return, so that controls arent automatically shown
         }
+
         // only show controls after controller is fully done initializing
         showControls = true;
       }
+
       if (isPlaying) {
         logger.i("Resuming video");
         await controller.play();
       }
+
       setState(() {});
     });
 
