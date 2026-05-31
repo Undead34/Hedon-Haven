@@ -1143,11 +1143,28 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
 
       logger.d(
           "Received non 200 status code -> Requesting model page: $authorPageLink");
-      response = await client.head(authorPageLink,
-          headers: {"Cookie": "KEY=${_sessionCookies["KEY"]}"});
+
+      // Manually follow all redirects to check they lead to the all pornstars page
+      Uri currentUrl = authorPageLink;
+      while (true) {
+        final request = Request("HEAD", currentUrl)
+          ..headers["Cookie"] = "KEY=${_sessionCookies["KEY"]}"
+          ..followRedirects = false;
+
+        final response = await client.send(request);
+
+        if (response.statusCode >= 300 && response.statusCode < 400) {
+          final location = response.headers["location"];
+          if (location == null) break;
+          // resolve handles relative URLs
+          currentUrl = currentUrl.resolve(location);
+        } else {
+          break;
+        }
+      }
 
       // make sure pornhub didn't redirect to the all pornstars page
-      if (response.body.contains("Most Popular Pornstars And Models")) {
+      if (currentUrl.path == "/pornstars") {
         authorPageLink = Uri.parse("$_pornstarEndpoint$authorID");
         logger.d("Detected redirect to all pornstars page, trying again with "
             "pornstar endpoint: $authorPageLink");
@@ -1183,8 +1200,27 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
           // Mobile video image previews are higher quality
           headers: {"Cookie": "accessAgeDisclaimerPH=1; platform=mobile"});
 
+      // Manually follow all redirects to check they lead to the all pornstars page
+      Uri currentUrl = authorPageLink;
+      while (true) {
+        final request = Request("HEAD", currentUrl)
+          ..headers["Cookie"] = "KEY=${_sessionCookies["KEY"]}"
+          ..followRedirects = false;
+
+        final response = await client.send(request);
+
+        if (response.statusCode >= 300 && response.statusCode < 400) {
+          final location = response.headers["location"];
+          if (location == null) break;
+          // resolve handles relative URLs
+          currentUrl = currentUrl.resolve(location);
+        } else {
+          break;
+        }
+      }
+
       // make sure pornhub didn't redirect to the all pornstars page
-      if (response.body.contains("Most Popular Pornstars And Models")) {
+      if (currentUrl.path == "/pornstars") {
         authorPageLink = Uri.parse("$_pornstarEndpoint$authorID");
         logger.d("Detected redirect to all pornstars page, trying again with "
             "pornstar endpoint: $authorPageLink");
