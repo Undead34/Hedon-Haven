@@ -30,11 +30,13 @@ import '/utils/global_vars.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  fvp.registerWith(options: {
-    // fix audio cracking when seeking
-    // FIXME: When enabling this, hw acceleration breaks
-    //"player": {"audio.renderer": "AudioTrack"}
-  });
+  fvp.registerWith(
+    options: {
+      "lowLatency": 1, // optimize for VOD playback
+      // fix audio cracking when seeking
+      "player": {"audio.renderer": "AudioTrack"}
+    },
+  );
   await initGlobalVars();
   logger.i("Initializing app");
   await setDefaultSettings();
