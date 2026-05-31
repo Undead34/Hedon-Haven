@@ -68,6 +68,8 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
   int selectedResolution = 0;
   List<int> sortedResolutions = [];
 
+  Future<UniversalAuthorPage>? _authorPageCache;
+
   // Fill with garbage for skeleton
   List<UniversalComment>? comments = List.generate(
     10,
@@ -517,8 +519,11 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
         openColor: Theme.of(context).colorScheme.surface,
         transitionDuration: const Duration(milliseconds: 400),
         openBuilder: (context, _) => AuthorPageScreen(
-            authorPage:
-                videoMetadata.plugin!.getAuthorPage(videoMetadata.authorID)),
+              authorPage: isLoadingMetadata
+                  ? videoMetadata.plugin!.getAuthorPage(videoMetadata.authorID)
+                  : _authorPageCache ??= videoMetadata.plugin!
+                      .getAuthorPage(videoMetadata.authorID),
+            ),
         closedBuilder: (context, openContainer) => TextButton(
             style: ButtonStyle(
                 padding: WidgetStateProperty.all(EdgeInsets.symmetric(

@@ -132,6 +132,11 @@ class _VideoListState extends State<VideoList> {
   List<UniversalVideoPreview>? videoList =
       List.filled(12, UniversalVideoPreview.skeleton());
 
+  // Cache videoMetadata and authorPages to avoid openContainers requesting
+  // the same page 5 times for each 1 user click
+  final Map<String, Future<UniversalVideoMetadata>> _videoMetadataCache = {};
+  final Map<String, Future<UniversalAuthorPage>> _authorPageCache = {};
+
   @override
   void initState() {
     super.initState();
@@ -370,10 +375,11 @@ class _VideoListState extends State<VideoList> {
                       openColor: Theme.of(context).colorScheme.surface,
                       transitionDuration: const Duration(milliseconds: 400),
                       openBuilder: (context, _) => VideoPlayerScreen(
-                            videoMetadata: videoList![index]
-                                .plugin!
-                                .getVideoMetadata(
-                                    videoList![index].iD, videoList![index]),
+                            videoMetadata:
+                                _videoMetadataCache[videoList![index].iD] ??=
+                                    videoList![index].plugin!.getVideoMetadata(
+                                        videoList![index].iD,
+                                        videoList![index]),
                             videoID: videoList![index].iD,
                           ),
                       closedBuilder: (context, openContainer) => MouseRegion(
@@ -785,9 +791,11 @@ class _VideoListState extends State<VideoList> {
                     openColor: Theme.of(context).colorScheme.surface,
                     transitionDuration: const Duration(milliseconds: 400),
                     openBuilder: (context, _) => AuthorPageScreen(
-                        authorPage: videoList![index]
-                            .plugin!
-                            .getAuthorPage(videoList![index].authorID!)),
+                          authorPage: _authorPageCache[videoList![index].iD] ??=
+                              videoList![index]
+                                  .plugin!
+                                  .getAuthorPage(videoList![index].authorID!),
+                        ),
                     closedBuilder: (context, openContainer) => TextButton(
                         onPressed: videoList![index].authorID == null
                             ? () => showToast(
