@@ -1139,11 +1139,10 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     if (response.statusCode != 200) {
       // Try again for model author type
       authorPageLink = Uri.parse("$_modelEndpoint$authorID");
-
       logger.d(
           "Received non 200 status code -> Requesting model page: $authorPageLink");
 
-      // Manually follow all redirects to check they lead to the all pornstars page
+      // Manually follow all redirects to check if they lead to the all pornstars page
       Uri currentUrl = authorPageLink;
       while (true) {
         final request = Request("HEAD", currentUrl)
@@ -1167,9 +1166,10 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
         authorPageLink = Uri.parse("$_pornstarEndpoint$authorID");
         logger.d("Detected redirect to all pornstars page, trying again with "
             "pornstar endpoint: $authorPageLink");
-        response = await client.head(authorPageLink,
-            headers: {"Cookie": "KEY=${_sessionCookies["KEY"]}"});
       }
+
+      response = await client.head(authorPageLink,
+          headers: {"Cookie": "KEY=${_sessionCookies["KEY"]}"});
 
       if (response.statusCode != 200) {
         logger.e(
