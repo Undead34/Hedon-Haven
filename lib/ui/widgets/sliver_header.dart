@@ -18,7 +18,7 @@ class FloatingDynamicSliverHeader extends StatefulWidget {
 }
 
 class _FloatingDynamicSliverHeaderState
-    extends State<FloatingDynamicSliverHeader> {
+    extends State<FloatingDynamicSliverHeader> with TickerProviderStateMixin {
   double _height = 300;
 
   @override
@@ -29,6 +29,7 @@ class _FloatingDynamicSliverHeaderState
         delegate: _FloatingDynamicHeaderDelegate(
             height: _height,
             floating: !widget.pinned,
+            ticker: this,
             onHeightChanged: (h) => setState(() => _height = h),
             child: ColoredBox(
                 color: widget.backgroundColor ??
@@ -42,12 +43,18 @@ class _FloatingDynamicHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double height;
   final bool floating;
   final ValueChanged<double> onHeightChanged;
+  final TickerProvider _ticker;
 
   _FloatingDynamicHeaderDelegate(
       {required this.child,
       required this.height,
       required this.floating,
-      required this.onHeightChanged});
+      required TickerProvider ticker,
+      required this.onHeightChanged})
+      : _ticker = ticker;
+
+  @override
+  TickerProvider? get vsync => _ticker;
 
   @override
   double get minExtent => height;
