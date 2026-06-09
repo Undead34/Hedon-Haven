@@ -732,7 +732,7 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     Element? authorRaw =
         rawHtml.querySelector(".userInfoContainer")?.querySelector("a");
 
-    String? authorString = authorRaw?.text;
+    String? authorString = authorRaw?.text.trim();
     String authorId = authorRaw!.attributes["href"]!.split("/").last;
 
     // actors
