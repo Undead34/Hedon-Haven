@@ -160,69 +160,64 @@ class _PluginsScreenState extends State<PluginsScreen> {
         });
   }
 
-  void _showPluginInitErrorDialog(PluginInterface plugin) {
+  void _showPluginInitErrorDialog(PluginInterface plugin) async {
+    var data = await PluginManager.getPluginError(plugin);
+    final bool customException =
+        data != null ? isCustomException(data.$1) : false;
+    final String errorMessage =
+        data != null ? "${data.$1}\n\n${data.$2}" : "Unknown error!?";
     showDialog(
         context: context,
-        builder: (BuildContext context) => FutureBuilder<(Exception, String)?>(
-            future: PluginManager.getPluginError(plugin),
-            builder: (context, snapshot) {
-              final bool customException = snapshot.data != null
-                  ? isCustomException(snapshot.data?.$1)
-                  : false;
-              final String errorMessage = snapshot.data != null
-                  ? snapshot.data!.$1.toString() + snapshot.data!.$2
-                  : "Unknown error!?";
-              return ThemedDialog(
-                  title: "Plugin initialization error",
-                  // TODO: Add a link to proxy settings in case of AgeGateException or BannedCountryException
-                  primaryText: customException ? "Ok" : "Report bug",
-                  onPrimary: () {
-                    if (customException) {
-                      Navigator.pop(context);
-                    } else {
-                      Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => BugReportScreen(
-                                      debugObject: [],
-                                      plugin: plugin,
-                                      message: errorMessage,
-                                      issueType: "Plugin issue")))
-                          .then((value) => Navigator.pop(context));
-                    }
-                  },
-                  secondaryText: customException ? null : "Close",
-                  onSecondary: () =>
-                      customException ? null : Navigator.pop(context),
-                  content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                            "The ${plugin.prettyName} plugin failed to initialize with the following error:",
-                            style: Theme.of(context).textTheme.titleMedium),
-                        SizedBox(height: 5),
-                        TextFormField(
-                            initialValue: errorMessage,
-                            readOnly: true,
-                            maxLines: null,
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface),
-                            textAlignVertical: TextAlignVertical.top,
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 10),
-                                filled: true,
-                                fillColor:
-                                    Theme.of(context).colorScheme.surface,
-                                hoverColor:
-                                    Theme.of(context).colorScheme.surface))
-                      ]));
-            }));
+        builder: (BuildContext context) => ThemedDialog(
+            title: "Plugin initialization error",
+            // TODO: Add a link to proxy settings in case of AgeGateException or BannedCountryException
+            primaryText: customException ? "Ok" : "Report bug",
+            onPrimary: () {
+              if (customException) {
+                Navigator.pop(context);
+              } else {
+                Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => BugReportScreen(
+                                debugObject: [],
+                                plugin: plugin,
+                                message: errorMessage,
+                                issueType: "Plugin issue")))
+                    .then((value) => Navigator.pop(context));
+              }
+            },
+            secondaryText: customException ? null : "Close",
+            onSecondary: () => customException ? null : Navigator.pop(context),
+            content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                      "The ${plugin.prettyName} plugin failed to initialize with the following error:",
+                      style: Theme.of(context).textTheme.titleMedium),
+                  SizedBox(height: 5),
+                  Flexible(
+                      child: TextFormField(
+                          initialValue: errorMessage,
+                          readOnly: true,
+                          maxLines: null,
+                          scrollController: ScrollController(),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface),
+                          textAlignVertical: TextAlignVertical.top,
+                          decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 10),
+                              filled: true,
+                              fillColor: Theme.of(context).colorScheme.surface,
+                              hoverColor:
+                                  Theme.of(context).colorScheme.surface)))
+                ])));
   }
 
   void showPluginUpdateDialog(PluginInterface plugin) {

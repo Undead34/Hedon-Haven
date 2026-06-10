@@ -236,8 +236,7 @@ class PluginManager {
       await plugin.init(pluginCacheDir.path);
     } catch (e, st) {
       logger.e("Failed to initiate ${plugin.codeName} plugin: $e\n$st");
-      _failedPlugins[plugin] =
-          (e is Exception ? e : Exception(e.toString()), st.toString());
+      _failedPlugins[plugin] = (e as Exception, st.toString());
       rethrow;
     }
     // Directly replace old plugin instance (if present) with new one
