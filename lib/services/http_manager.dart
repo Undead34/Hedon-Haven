@@ -54,7 +54,7 @@ Future<http.Client> getHttpClient(String? proxy) async {
 
           request = request.copyWith(headers: tempHeaders);
 
-          logger.d("[HTTP][$requestId] type: ${request.method.value};"
+          logger.t("[HTTP][$requestId] type: ${request.method.value};"
               " URI: ${request.url};"
               " headers: ${request.headers}");
 
@@ -67,7 +67,7 @@ Future<http.Client> getHttpClient(String? proxy) async {
                 .map["x-request-id"];
           }
 
-          logger.d("[HTTP][$requestId] response status: ${response.statusCode};"
+          logger.t("[HTTP][$requestId] response status: ${response.statusCode};"
               " headers: ${response.headers}");
 
           return Interceptor.next(response);
