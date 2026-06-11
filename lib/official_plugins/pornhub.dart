@@ -135,7 +135,6 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
 
   final String _channelEndpoint = "https://www.pornhub.com/channels/";
   final String _modelEndpoint = "https://www.pornhub.com/model/";
-  final String _pornstarEndpoint = "https://www.pornhub.com/pornstar/";
 
   // Store session cookies created by init
   final Map<String, String> _sessionCookies = {
@@ -1146,40 +1145,14 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
       logger.d(
           "Received non 200 status code -> Requesting model page: $authorPageLink");
 
-      // Manually follow all redirects to check if they lead to the all pornstars page
-      Uri currentUrl = authorPageLink;
-      while (true) {
-        final request = Request("HEAD", currentUrl)
-          ..headers["Cookie"] = "KEY=${_sessionCookies["KEY"]}"
-          ..followRedirects = false;
-
-        final response = await client.send(request);
-
-        if (response.statusCode >= 300 && response.statusCode < 400) {
-          final location = response.headers["location"];
-          if (location == null) break;
-          // resolve handles relative URLs
-          currentUrl = currentUrl.resolve(location);
-        } else {
-          break;
-        }
-      }
-
-      // make sure pornhub didn't redirect to the all pornstars page
-      if (currentUrl.path == "/pornstars") {
-        authorPageLink = Uri.parse("$_pornstarEndpoint$authorID");
-        logger.d("Detected redirect to all pornstars page, trying again with "
-            "pornstar endpoint: $authorPageLink");
-      }
-
       response = await client.head(authorPageLink,
           headers: {"Cookie": "KEY=${_sessionCookies["KEY"]}"});
 
       if (response.statusCode != 200) {
         logger.e(
-            "Error downloading html (tried channel, model, pornstar): ${response.statusCode} - ${response.reasonPhrase}");
+            "Error downloading html (tried channel, model): ${response.statusCode} - ${response.reasonPhrase}");
         throw Exception(
-            "Error downloading html (tried channel, model, pornstar): ${response.statusCode} - ${response.reasonPhrase}");
+            "Error downloading html (tried channel, model): ${response.statusCode} - ${response.reasonPhrase}");
       }
     }
     return authorPageLink;
@@ -1203,40 +1176,11 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
           // Mobile video image previews are higher quality
           headers: {"Cookie": "accessAgeDisclaimerPH=1; platform=mobile"});
 
-      // Manually follow all redirects to check they lead to the all pornstars page
-      Uri currentUrl = authorPageLink;
-      while (true) {
-        final request = Request("HEAD", currentUrl)
-          ..headers["Cookie"] = "KEY=${_sessionCookies["KEY"]}"
-          ..followRedirects = false;
-
-        final response = await client.send(request);
-
-        if (response.statusCode >= 300 && response.statusCode < 400) {
-          final location = response.headers["location"];
-          if (location == null) break;
-          // resolve handles relative URLs
-          currentUrl = currentUrl.resolve(location);
-        } else {
-          break;
-        }
-      }
-
-      // make sure pornhub didn't redirect to the all pornstars page
-      if (currentUrl.path == "/pornstars") {
-        authorPageLink = Uri.parse("$_pornstarEndpoint$authorID");
-        logger.d("Detected redirect to all pornstars page, trying again with "
-            "pornstar endpoint: $authorPageLink");
-        response = await _performGetRequest(authorPageLink,
-            // Mobile video image previews are higher quality
-            headers: {"Cookie": "accessAgeDisclaimerPH=1; platform=mobile"});
-      }
-
       if (response.statusCode != 200) {
         logger.e(
-            "Error downloading html (tried channel, model, pornstar): ${response.statusCode} - ${response.reasonPhrase}");
+            "Error downloading html (tried channel, model): ${response.statusCode} - ${response.reasonPhrase}");
         throw Exception(
-            "Error downloading html (tried channel, model, pornstar): ${response.statusCode} - ${response.reasonPhrase}");
+            "Error downloading html (tried channel, model): ${response.statusCode} - ${response.reasonPhrase}");
       }
     }
 
