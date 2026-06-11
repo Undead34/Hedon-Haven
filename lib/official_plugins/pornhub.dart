@@ -364,17 +364,23 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
   Future<Response> _performGetRequest(Uri requestUri,
       {Map<String, String>? headers, int? recurseCount}) async {
     headers ??= {"Cookie": ""};
-    if (headers["Cookie"] == null) {
-      headers["Cookie"] = "";
-    }
     recurseCount ??= 0;
     if (recurseCount > 5) {
       throw Exception("Compute check failed 5 times");
     }
     logger.d("_performGetRequest recurse count: $recurseCount");
 
-    // Append already existing compute KEY to request
-    headers["Cookie"] = "${headers["Cookie"]}; KEY=${_sessionCookies["KEY"]}";
+    // Add ss cookie with correct formatting depending on whether other cookies already exist
+    headers["Cookie"] =
+        "${headers["Cookie"] == "" ? "" : "${headers["Cookie"]}; "}ss=${_sessionCookies["ss"]}";
+
+    // Add KEY cookie if it already exists
+    if (_sessionCookies["KEY"] != "") {
+      headers["Cookie"] =
+          "${headers["Cookie"]}; KEY=${_sessionCookies["KEY"]};";
+    }
+
+    logger.d("_performGetRequest headers: ${headers["Cookie"]}");
 
     Response response = await client.get(requestUri, headers: headers);
 
