@@ -430,7 +430,8 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
       throw Exception("Failed to initialize plugin. "
           "Received status code ${response.statusCode}");
     }
-    setCookies = response.headers['set-cookie'];
+    setCookies = response.headers["set-cookie"];
+    logger.d("Set cookies received: $setCookies");
     Document rawHtml = parse(response.body);
 
     debugCallback
@@ -442,13 +443,14 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     }
 
     if (setCookies != null) {
-      List<String> cookiesList = setCookies.split(',');
-      for (var i = 0; i < cookiesList.length; i++) {
-        if (cookiesList[i].contains("ss=")) {
-          _sessionCookies["ss"] =
-              cookiesList[i].substring(3, cookiesList[i].indexOf(";"));
+      for (String cookie in setCookies.replaceAll(" secure, ", "").split(';')) {
+        if (cookie.startsWith("ss=")) {
+          _sessionCookies["ss"] = cookie.split("=").last;
           logger.i("Session cookie: ${_sessionCookies["ss"]}");
         }
+      }
+      if (_sessionCookies["ss"] == null) {
+        throw Exception("Failed to extract ss cookie");
       }
     } else {
       throw Exception(
@@ -460,10 +462,8 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
         rawHtml.querySelector("#searchInput")!.attributes["data-token"]!;
     logger.i("Token: ${_sessionCookies["token"]}");
     if (_sessionCookies["token"] == null) {
-      logger.e("No token received or found; couldn't extract token");
-      return Future.value(false);
+      throw Exception("No token received or found; couldn't extract token");
     }
-    return Future.value(true);
   }
 
   @override
@@ -606,10 +606,7 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     logger.d("Getting search suggestions for $searchString");
     final Uri requestUri = Uri.parse(
         "https://www.pornhub.com/api/v1/video/search_autocomplete?token=${_sessionCookies["token"]}&q=$searchString");
-    logger
-        .d("Request URI: $requestUri with ss cookie: ${_sessionCookies["ss"]}");
-    final response = await _performGetRequest(requestUri,
-        headers: {"Cookie": "ss=${_sessionCookies["ss"]}"});
+    final response = await _performGetRequest(requestUri);
     debugCallback?.call(response.body);
     Map<String, dynamic> data = jsonDecode(response.body);
     // The search results are just returned as key value pairs of numbers
