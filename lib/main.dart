@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fvp/fvp.dart' as fvp;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:rhttp/rhttp.dart';
 import 'package:secure_app_switcher/secure_app_switcher.dart';
 import 'package:super_drag_and_drop/super_drag_and_drop.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,6 +31,7 @@ import '/utils/global_vars.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Rhttp.init();
   fvp.registerWith(
     options: {
       "lowLatency": 1, // optimize for VOD playback

@@ -31,7 +31,7 @@ void main() async {
 
   // Init global values
   logger = Logger(printer: TestingPrinter());
-  client = getHttpClient(null);
+  client = await getHttpClient(null);
   final mock = MockSharedPreferencesAsync();
   when(mock.getBool("general_enable_dev_options"))
       .thenAnswer((_) async => false);

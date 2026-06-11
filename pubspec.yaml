@@ -53,6 +53,7 @@ dependencies:
   super_drag_and_drop: ^0.9.1
   receive_sharing_intent:
     git: https://github.com/KasemJaffer/receive_sharing_intent
+  rhttp: ^0.18.0
 
 # override to avoid error: Value of type 'NWPath' has no member 'isUltraConstrained'
 dependency_overrides:
