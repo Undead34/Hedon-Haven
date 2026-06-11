@@ -369,7 +369,7 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     }
     recurseCount ??= 0;
     if (recurseCount > 5) {
-      throw ("Compute check failed 5 times");
+      throw Exception("Compute check failed 5 times");
     }
     logger.d("_performGetRequest recurse count: $recurseCount");
 
