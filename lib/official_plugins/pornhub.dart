@@ -419,7 +419,7 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     // Get the sessions cookie (called ss) from the response headers
     String? setCookies;
     http.Response response =
-        await _performGetRequest(Uri.parse("https://www.pornhub.com"));
+        await client.get(Uri.parse("https://www.pornhub.com"));
     if (response.statusCode != 200) {
       return Future.value(false);
     }
