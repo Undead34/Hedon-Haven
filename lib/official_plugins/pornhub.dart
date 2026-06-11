@@ -695,7 +695,7 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
       logger.e(
           "Error downloading html: ${response.statusCode} - ${response.reasonPhrase}");
       throw Exception(
-          "Error downloading html: ${response.statusCode} -l ${response.reasonPhrase}");
+          "Error downloading html: ${response.statusCode} - ${response.reasonPhrase}");
     }
 
     Document rawHtml = parse(response.body);
