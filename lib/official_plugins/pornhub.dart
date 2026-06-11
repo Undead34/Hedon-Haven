@@ -1314,7 +1314,8 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
             .text
             .trim()
             .split("\n")
-            .first;
+            .first
+            .trim();
         description = pageHtml
             .querySelector('div[class="wrapper"]')
             ?.text
