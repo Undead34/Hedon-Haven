@@ -408,10 +408,10 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
   }
 
   @override
-  Future<bool> init(String cachePath,
+  Future<void> init(String cachePath,
       [void Function(String body)? debugCallback]) async {
     if (isInitialized) {
-      return true;
+      return;
     }
     isInitialized = true;
     logger.i("Initializing $codeName plugin");
@@ -421,7 +421,8 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     http.Response response =
         await client.get(Uri.parse("https://www.pornhub.com"));
     if (response.statusCode != 200) {
-      return Future.value(false);
+      throw Exception("Failed to initialize plugin. "
+          "Received status code ${response.statusCode}");
     }
     setCookies = response.headers['set-cookie'];
     Document rawHtml = parse(response.body);
@@ -444,8 +445,8 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
         }
       }
     } else {
-      logger.e("No set-cookies received; couldn't extract session cookie");
-      return Future.value(false);
+      throw Exception(
+          "No set-cookies received; couldn't extract session cookie");
     }
 
     // From the same request get the token inside the html

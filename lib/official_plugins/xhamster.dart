@@ -227,17 +227,18 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
   }
 
   @override
-  Future<bool> init(String cachePath,
+  Future<void> init(String cachePath,
       [void Function(String body)? debugCallback]) async {
     if (isInitialized) {
-      return true;
+      return;
     }
     isInitialized = true;
     // Request main page to check for age gate / banned country
     http.Response response =
         await client.get(Uri.parse("https://xhamster.com"));
     if (response.statusCode != 200) {
-      return Future.value(false);
+      throw Exception("Failed to initialize plugin. "
+          "Received status code ${response.statusCode}");
     }
 
     debugCallback
@@ -247,7 +248,6 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
     if (parse(response.body).body!.classes.contains("xh-scroll-disabled")) {
       throw AgeGateException();
     }
-    return true;
   }
 
   @override
