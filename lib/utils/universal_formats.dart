@@ -303,11 +303,12 @@ class UniversalVideoMetadata {
   /// favorite-button to work on the video_screen
   final UniversalVideoPreview universalVideoPreview;
 
+  /// TODO: Use a single record variable for all author attributes
   final String authorID;
   final String? authorName;
   final int? authorSubscriberCount;
   final String? authorAvatar;
-  final List<String>? actors;
+  final List<({String name, String authorID, String avatar})>? actors;
   final String? description;
   final int? viewsTotal;
   final List<String>? tags;
@@ -339,7 +340,11 @@ class UniversalVideoMetadata {
             universalVideoPreview: UniversalVideoPreview.skeleton(),
             authorID: 'none',
             authorName: BoneMock.name,
-            authorAvatar: "mockAvatar");
+            authorAvatar: "mockAvatar",
+            actors: [
+              (name: "mock", authorID: "none", avatar: "mockAvatar"),
+              (name: "mock", authorID: "none", avatar: "mockAvatar")
+            ]);
 
   UniversalVideoMetadata({
     required this.iD,
@@ -381,7 +386,13 @@ class UniversalVideoMetadata {
       "authorName": authorName,
       "authorSubscriberCount": authorSubscriberCount,
       "authorAvatar": authorAvatar,
-      "actors": actors,
+      "actors": actors
+          ?.map((e) => {
+                "name": e.name,
+                "authorID": e.authorID,
+                "avatar": e.avatar,
+              })
+          .toList(),
       "description": description,
       "viewsTotal": viewsTotal,
       "tags": tags,
@@ -415,7 +426,13 @@ class UniversalVideoMetadata {
       authorName: map["authorName"],
       authorSubscriberCount: map["authorSubscriberCount"],
       authorAvatar: map["authorAvatar"],
-      actors: (map["actors"] as List?)?.cast<String>(),
+      actors: (map["actors"] as List?)
+          ?.map((e) => (
+                name: e["name"] as String,
+                authorID: e["authorID"] as String,
+                avatar: e["avatar"] as String,
+              ))
+          .toList(),
       description: map["description"],
       viewsTotal: map["viewsTotal"],
       tags: (map["tags"] as List?)?.cast<String>(),

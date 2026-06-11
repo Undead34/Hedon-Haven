@@ -739,13 +739,22 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     String authorId = authorRaw!.attributes["href"]!.split("/").last;
 
     // actors
-    List<String>? actors = [];
+    List<({String name, String authorID, String avatar})>? actors;
     List<Element>? actorsList = rawHtml
         .querySelector('div[class*="pornstarsWrapper"]')
         ?.querySelectorAll("a");
     if (actorsList != null) {
       for (Element element in actorsList) {
-        actors.add(element.text);
+        try {
+          actors ??= [];
+          actors.add((
+            name: element.text.trim(),
+            authorID: element.attributes["href"]!.split("/").last,
+            avatar: element.children.first.attributes["src"]!
+          ));
+        } catch (e, st) {
+          logger.w("Failed to parse actor: $e\n$st");
+        }
       }
     }
 

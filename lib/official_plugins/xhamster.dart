@@ -452,14 +452,23 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
     // Extract tags, categories and actors from jscriptMap
     List<String>? tags = [];
     List<String>? categories = [];
-    List<String>? actors = [];
+    List<({String name, String authorID, String avatar})>? actors;
     try {
       for (Map<String, dynamic> element
           in jscriptMap["videoTagsComponent"]!["tags"]!) {
         if (element["isCategory"]!) {
           categories.add(element["name"]!);
         } else if (element["isPornstar"]!) {
-          actors.add(element["name"]!);
+          try {
+            actors ??= [];
+            actors.add((
+              name: element["name"],
+              authorID: element["slug"],
+              avatar: element["thumbUrl"]
+            ));
+          } catch (e, st) {
+            logger.w("Failed to parse actor: $e\n$st");
+          }
         } else if (element["isTag"]!) {
           tags.add(element["name"]!);
         } else {
@@ -469,16 +478,6 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
     } catch (e, stacktrace) {
       logger.w("Failed to parse actors/tags/categories (but continuing "
           "anyways): $e\n$stacktrace");
-    }
-
-    if (actors.isEmpty) {
-      actors = null;
-    }
-    if (tags.isEmpty) {
-      actors = null;
-    }
-    if (categories.isEmpty) {
-      categories = null;
     }
 
     // Use the tooltip as video upload date

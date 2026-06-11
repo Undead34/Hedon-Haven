@@ -229,7 +229,18 @@ class TesterPlugin extends OfficialPlugin implements PluginInterface {
       authorName: "Tester-author",
       authorSubscriberCount: 335433,
       authorAvatar: "https://placehold.co/1280x720.png",
-      actors: ["Tester-actor-1", "Tester-actor-2"],
+      actors: [
+        (
+          name: "Tester-actor-1",
+          authorID: "Tester-author-actor-1",
+          avatar: "https://placehold.co/200x200.png"
+        ),
+        (
+          name: "Tester-actor-2",
+          authorID: "Tester-author-actor-2",
+          avatar: "https://placehold.co/200x200.png"
+        )
+      ],
       description: "Tester video description" * 10,
       viewsTotal: 2532823,
       tags: ["Tester-tag-1", "Tester-tag-2"],
