@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:hedon_haven/utils/global_vars.dart';
 import 'package:http/http.dart' as http;
 import 'package:rhttp/rhttp.dart';
+
+final _rand = Random();
 
 String findFastestProxy() {
   throw UnimplementedError();
@@ -41,17 +45,31 @@ Future<http.Client> getHttpClient(String? proxy) async {
                   tempHeaders.copyWithRaw(name: entry.key, value: entry.value);
             }
           }
-          // Apply the updated headers to the request
+
+          // Add a short unique request ID to the request to print it in the afterResponse
+          // This helps correctly match requests and responses in logs
+          final requestId = _rand.nextInt(1 << 32).toString();
+          tempHeaders =
+              tempHeaders.copyWithRaw(name: "x-request-id", value: requestId);
+
           request = request.copyWith(headers: tempHeaders);
 
-          logger.d("[HTTP] type: ${request.method.value};"
+          logger.d("[HTTP][$requestId] type: ${request.method.value};"
               " URI: ${request.url};"
               " headers: ${request.headers}");
+
           return Interceptor.next(request);
         },
         afterResponse: (response) async {
-          logger.d("[HTTP] response status: ${response.statusCode};"
+          String? requestId;
+          if (response.request.headers is HttpHeaderRawMap) {
+            requestId = (response.request.headers as HttpHeaderRawMap)
+                .map["x-request-id"];
+          }
+
+          logger.d("[HTTP][$requestId] response status: ${response.statusCode};"
               " headers: ${response.headers}");
+
           return Interceptor.next(response);
         },
       ),
