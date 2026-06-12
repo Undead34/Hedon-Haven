@@ -493,7 +493,9 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       IntrinsicHeight(child: buildAuthorPreview()),
                       buildMetadataSection()
                     ]),
+          const SizedBox(height: 10),
           buildActorsList(),
+          const SizedBox(height: 10),
           buildActionButtonsRow(),
           if (isMobile)
             SizedBox(
