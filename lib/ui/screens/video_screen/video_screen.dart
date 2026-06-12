@@ -68,7 +68,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
   int selectedResolution = 0;
   List<int> sortedResolutions = [];
 
-  Future<UniversalAuthorPage>? _authorPageCache;
+  final Map<String, Future<UniversalAuthorPage>> _authorPageCache = {};
 
   // Fill with garbage for skeleton
   List<UniversalComment>? comments = List.generate(
@@ -493,6 +493,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       IntrinsicHeight(child: buildAuthorPreview()),
                       buildMetadataSection()
                     ]),
+          buildActorsList(),
           buildActionButtonsRow(),
           if (isMobile)
             SizedBox(
@@ -511,6 +512,102 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
         ]);
   }
 
+  Widget buildActorsList() {
+    return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceVariant,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: videoMetadata.actors == null
+                ? Center(child: Text("No actors available"))
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      spacing: 10,
+                      children: videoMetadata.actors!
+                              .map((actor) => OpenContainer(
+                                  closedElevation: 0,
+                                  openElevation: 0,
+                                  closedColor: Colors.transparent,
+                                  openColor:
+                                      Theme.of(context).colorScheme.surface,
+                                  transitionDuration:
+                                      const Duration(milliseconds: 400),
+                                  openBuilder: (context, _) => AuthorPageScreen(
+                                        authorPage:
+                                            _authorPageCache[actor.authorID] ??=
+                                                videoMetadata.plugin!
+                                                    .getAuthorPage(
+                                                        actor.authorID),
+                                      ),
+                                  closedBuilder: (context, openContainer) =>
+                                      Container(
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .surfaceContainer,
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          child: TextButton(
+                                              style: TextButton.styleFrom(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 5),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                  )),
+                                              onPressed: () {
+                                                // pause video
+                                                videoPlayerWidgetKey
+                                                    .currentState
+                                                    ?.pausePlayer();
+                                                openContainer();
+                                              },
+                                              child: Row(spacing: 3, children: [
+                                                Padding(
+                                                    padding: EdgeInsetsGeometry
+                                                        .symmetric(vertical: 5),
+                                                    child: ClipOval(
+                                                      child: Image.network(
+                                                        width: 30,
+                                                        height: 30,
+                                                        actor.avatar ??
+                                                            "Avatar url is null",
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (context,
+                                                            error, stackTrace) {
+                                                          if (!error
+                                                              .toString()
+                                                              .contains(
+                                                                  "mockAvatar")) {
+                                                            logger.e(
+                                                                "Failed to load network avatar: $error\n$stackTrace");
+                                                          }
+                                                          return FittedBox(
+                                                              fit: BoxFit.cover,
+                                                              child: Icon(
+                                                                  Icons.person,
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .colorScheme
+                                                                      .onTertiary));
+                                                        },
+                                                      ),
+                                                    )),
+                                                Text(actor.name)
+                                              ])))))
+                              .toList() ??
+                          [],
+                    ))));
+  }
+
   Widget buildAuthorPreview() {
     return OpenContainer(
         closedElevation: 0,
@@ -519,10 +616,8 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
         openColor: Theme.of(context).colorScheme.surface,
         transitionDuration: const Duration(milliseconds: 400),
         openBuilder: (context, _) => AuthorPageScreen(
-              authorPage: isLoadingMetadata
-                  ? videoMetadata.plugin!.getAuthorPage(videoMetadata.authorID)
-                  : _authorPageCache ??= videoMetadata.plugin!
-                      .getAuthorPage(videoMetadata.authorID),
+              authorPage: _authorPageCache[videoMetadata.authorID] ??=
+                  videoMetadata.plugin!.getAuthorPage(videoMetadata.authorID),
             ),
         closedBuilder: (context, openContainer) => TextButton(
             style: ButtonStyle(
