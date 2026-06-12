@@ -34,9 +34,8 @@ void main() async {
   await Rhttp.init();
   fvp.registerWith(
     options: {
-      "lowLatency": 1, // optimize for VOD playback
-      // fix audio cracking when seeking
-      "player": {"audio.renderer": "AudioTrack"}
+      // fix audio cracking when seeking on Android
+      if (Platform.isAndroid) "player": {"audio.renderer": "AudioTrack"}
     },
   );
   await initGlobalVars();
