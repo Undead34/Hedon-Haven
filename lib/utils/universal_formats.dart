@@ -172,7 +172,7 @@ class UniversalVideoPreview {
   /// The message itself is shown to the user in the scraping_report and is sent in bug reports
   String? scrapeFailMessage;
 
-  /// Empty constructor for skeleton
+  /// Mock constructor for skeleton
   UniversalVideoPreview.skeleton()
       : this(
             iD: "",
@@ -328,7 +328,7 @@ class UniversalVideoMetadata {
   /// The message itself is shown to the user in the scraping_report and is sent in bug reports
   String? scrapeFailMessage;
 
-  /// Empty constructor for skeleton
+  /// Mock constructor for skeleton
   UniversalVideoMetadata.skeleton()
       : this(
             iD: 'none',
@@ -499,7 +499,7 @@ class UniversalAuthorPage {
   /// The message itself is shown to the user in the scraping_report and is sent in bug reports
   String? scrapeFailMessage;
 
-  /// Empty constructor for skeleton
+  /// Mock constructor for skeleton
   UniversalAuthorPage.skeleton()
       : this(
             iD: "",
@@ -632,7 +632,7 @@ class UniversalComment {
   /// The message itself is shown to the user in the scraping_report and is sent in bug reports
   String? scrapeFailMessage;
 
-  /// Empty constructor for skeleton
+  /// Mock constructor for skeleton
   UniversalComment.skeleton()
       : this(
             iD: "",
