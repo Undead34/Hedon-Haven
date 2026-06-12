@@ -431,7 +431,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Widget buildVideoDetails() {
     return Column(
-        spacing: 10,
+        // to avoid spacing around the AnimatedSize Widget, manually add SizedBoxes everywhere
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           SizedBox(
@@ -475,7 +475,9 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
                           )
                         ],
                       )))),
+          const SizedBox(height: 10),
           if (isMobile) buildMetadataSection(),
+          // No spacer
           AnimatedSize(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
@@ -485,6 +487,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     style: Theme.of(context).textTheme.bodyMedium!)
                 : const SizedBox.shrink(),
           ),
+          const SizedBox(height: 10),
           isMobile
               ? buildAuthorPreview()
               : Row(
@@ -497,6 +500,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
           buildActorsList(),
           const SizedBox(height: 10),
           buildActionButtonsRow(),
+          const SizedBox(height: 10),
           if (isMobile)
             SizedBox(
                 width: double.infinity,
