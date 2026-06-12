@@ -39,6 +39,7 @@ String? getTimeDeltaInHumanReadable(DateTime? pastDate) {
 }
 
 /// Add dots into "raw" number to make it more readable
+/// TODO: Format with spaces instead of dots
 String formatWithDots(int number) {
   // Convert the number to a string and reverse it
   String reversed = number.toString().split('').reversed.join();
