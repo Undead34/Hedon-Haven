@@ -514,7 +514,6 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
                         onPressed:
                             isLoadingMetadata ? null : () => openComments(),
                         child: Text("Comments"))))
-          // buildCommentSection()
         ]);
   }
 
