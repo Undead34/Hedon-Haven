@@ -529,6 +529,10 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
       authorAvatar = jscriptMap["videoTagsComponent"]?["tags"]?[0]?["thumbUrl"];
     }
 
+    String? description = jscriptMap["videoModel"]?["description"] == ""
+        ? null
+        : jscriptMap["videoModel"]?["description"];
+
     UniversalVideoMetadata metadata = UniversalVideoMetadata(
         iD: videoId,
         m3u8Uris: m3u8Map,
@@ -540,7 +544,7 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
         authorSubscriberCount: authorSubscriberCount,
         authorAvatar: authorAvatar,
         actors: actors,
-        description: jscriptMap["videoModel"]?["description"],
+        description: description,
         viewsTotal: jscriptMap["videoTitle"]?["views"],
         tags: tags,
         categories: categories,
