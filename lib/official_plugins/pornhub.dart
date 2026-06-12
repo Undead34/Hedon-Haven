@@ -1428,6 +1428,12 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
     }
     debugCallback?.call(response.body);
     Document resultHtml = parse(response.body);
+
+    // Check if author has no videos listed
+    if (resultHtml.querySelector('.emptyIcon.video') != null) {
+      return [];
+    }
+
     return await _parseVideoList(
         resultHtml.querySelectorAll('ul[class*="videoList"]').last.children,
         true);

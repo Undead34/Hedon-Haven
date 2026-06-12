@@ -308,7 +308,7 @@ class UniversalVideoMetadata {
   final String? authorName;
   final int? authorSubscriberCount;
   final String? authorAvatar;
-  final List<({String name, String authorID, String avatar})>? actors;
+  final List<({String name, String authorID, String? avatar})>? actors;
   final String? description;
   final int? viewsTotal;
   final List<String>? tags;
