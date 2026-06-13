@@ -1,4 +1,5 @@
-String convertNumberIntoHumanReadable(int number) {
+String convertNumberIntoHumanReadable(int? number) {
+  if (number == null) return "-";
   if (number < 1000) {
     return number.toString();
     // <100k
