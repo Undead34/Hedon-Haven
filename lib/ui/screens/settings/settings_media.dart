@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '/services/yt_dlp_extractor.dart';
+import '/ui/utils/toast_notification.dart';
 import '/ui/widgets/options_dialog.dart';
 import '/ui/widgets/options_switch.dart';
 import '/utils/global_vars.dart';
@@ -12,6 +14,40 @@ class MediaScreen extends StatefulWidget {
 }
 
 class _MediaScreenState extends State<MediaScreen> {
+  String? _ytDlpVersion;
+  bool _ytDlpUpdating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadYtDlpVersion();
+  }
+
+  Future<void> _loadYtDlpVersion() async {
+    final ytDlp = YtDlpExtractorService.instance;
+    if (ytDlp.isSupported && !ytDlp.isReady) {
+      await ytDlp.initialize();
+    }
+    final version = await ytDlp.getYtDlpVersion();
+    if (mounted) {
+      setState(() => _ytDlpVersion = version);
+    }
+  }
+
+  Future<void> _updateYtDlp() async {
+    setState(() => _ytDlpUpdating = true);
+    final success = await YtDlpExtractorService.instance.updateYtDlp();
+    await _loadYtDlpVersion();
+    if (mounted) {
+      setState(() => _ytDlpUpdating = false);
+      if (success) {
+        showToast("yt-dlp updated successfully", context);
+      } else {
+        showToast("Failed to update yt-dlp", context);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,8 +154,75 @@ class _MediaScreenState extends State<MediaScreen> {
                               onToggled: (value) async =>
                                   await sharedStorage.setBool(
                                       "media_show_progress_thumbnails", value));
-                        })
+                        }),
+                    if (YtDlpExtractorService.instance.isSupported) ...[
+                      const SizedBox(height: 16),
+                      _buildYtDlpSection(context),
+                    ],
                   ],
                 ))));
+  }
+
+  Widget _buildYtDlpSection(BuildContext context) {
+    final ytDlp = YtDlpExtractorService.instance;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Divider(),
+      Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text("yt-dlp Engine",
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold))),
+      Row(children: [
+        Icon(
+          ytDlp.isReady
+              ? Icons.check_circle
+              : ytDlp.isInitializing
+                  ? Icons.sync
+                  : Icons.error_outline,
+          color: ytDlp.isReady
+              ? Colors.green
+              : ytDlp.isInitializing
+                  ? Colors.orange
+                  : Colors.grey,
+          size: 20,
+        ),
+        SizedBox(width: 8),
+        Text(ytDlp.isReady
+            ? "Ready"
+            : ytDlp.isInitializing
+                ? "Initializing..."
+                : "Not initialized"),
+        Spacer(),
+        if (_ytDlpVersion != null)
+          Text("v$_ytDlpVersion",
+              style: Theme.of(context).textTheme.bodySmall),
+      ]),
+      if (_ytDlpUpdating)
+        Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Row(children: [
+              SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2)),
+              SizedBox(width: 8),
+              Text("Updating yt-dlp...",
+                  style: Theme.of(context).textTheme.bodySmall)
+            ])),
+      if (ytDlp.isReady && !_ytDlpUpdating)
+        TextButton.icon(
+            onPressed: _updateYtDlp,
+            icon: Icon(Icons.update, size: 18),
+            label: Text("Update yt-dlp")),
+      SizedBox(height: 4),
+      Text(
+          "When enabled per plugin, yt-dlp is used to extract video stream URLs "
+          "instead of manual HTML parsing. Better for live streams and sites "
+          "with complex extraction.",
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    ]);
   }
 }

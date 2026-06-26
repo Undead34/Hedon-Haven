@@ -424,6 +424,29 @@ class XHamsterPlugin extends OfficialPlugin implements PluginInterface {
   Future<UniversalVideoMetadata> getVideoMetadata(
       String videoId, UniversalVideoPreview uvp,
       [void Function(String body)? debugCallback]) async {
+    // Try yt-dlp extraction first if enabled
+    if (await checkUseYtDlp(codeName)) {
+      final videoPageUrl = "$_videoEndpoint$videoId";
+      logger.i("xHamster: Using yt-dlp to extract streams from $videoPageUrl");
+      final ytStreams = await ytDlpExtractStreams(videoPageUrl);
+      if (ytStreams != null && ytStreams.isNotEmpty) {
+        logger.i("xHamster: yt-dlp extracted ${ytStreams.length} streams");
+        return UniversalVideoMetadata(
+            iD: videoId,
+            m3u8Uris: ytStreams,
+            playbackHttpHeaders: {
+              "User-Agent": httpUserAgent,
+              "Referer": "https://xhamster.com/"
+            },
+            title: uvp.title,
+            plugin: this,
+            universalVideoPreview: uvp,
+            authorID: uvp.authorID ?? "",
+            authorName: uvp.authorName);
+      }
+      logger.w("xHamster: yt-dlp failed, falling back to manual extraction");
+    }
+
     logger.d("Requesting ${_videoEndpoint + videoId}");
     var response = await client.get(Uri.parse(_videoEndpoint + videoId));
     debugCallback?.call(response.body);

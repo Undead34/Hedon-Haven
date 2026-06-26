@@ -9,6 +9,7 @@
         android:hardwareAccelerated="true"
         android:icon="@mipmap/stock"
         android:label="${appName}"
+        android:extractNativeLibs="true"
         android:largeHeap="true"
         android:theme="@style/LaunchTheme">
         <activity

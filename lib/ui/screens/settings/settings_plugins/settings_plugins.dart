@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 
 import '/services/plugin_manager.dart';
+import '/services/yt_dlp_extractor.dart';
 import '/ui/screens/bug_report.dart';
 import '/ui/screens/onboarding/onboarding_disclaimers.dart';
 import '/ui/screens/settings/settings_launcher_appearance.dart';
@@ -572,6 +573,27 @@ class _PluginsScreenState extends State<PluginsScreen> {
                           provides.contains(ProviderType.externalLinkHandler),
                       onToggled: (newState) => _setAsProvider(plugin, provides,
                           ProviderType.externalLinkHandler, newState)),
+                  if (plugin.isOfficialPlugin && YtDlpExtractorService.instance.isSupported)
+                    FutureBuilder<bool?>(
+                        future: sharedStorage
+                            .getBool("yt_dlp_enabled_${plugin.codeName}"),
+                        builder: (context, ytSnapshot) {
+                          return ytSnapshot.connectionState ==
+                                  ConnectionState.waiting
+                              ? const SizedBox()
+                              : OptionsSwitch(
+                                  title: "Use yt-dlp for streams",
+                                  subTitle:
+                                      "Extract video streams via yt-dlp "
+                                      "instead of manual HTML parsing",
+                                  switchState: ytSnapshot.data ?? false,
+                                  onToggled: (newState) async {
+                                    await sharedStorage.setBool(
+                                        "yt_dlp_enabled_${plugin.codeName}",
+                                        newState);
+                                    setState(() {});
+                                  });
+                        }),
                   if (!plugin.isOfficialPlugin)
                     ListTile(
                         trailing: const Icon(Icons.delete_forever,

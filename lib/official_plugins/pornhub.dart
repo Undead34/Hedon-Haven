@@ -682,6 +682,30 @@ class PornhubPlugin extends OfficialPlugin implements PluginInterface {
   Future<UniversalVideoMetadata> getVideoMetadata(
       String videoId, UniversalVideoPreview uvp,
       [void Function(String body)? debugCallback]) async {
+    // Try yt-dlp extraction first if enabled
+    if (await checkUseYtDlp(codeName)) {
+      final videoPageUrl =
+          "https://www.pornhub.com/view_video.php?viewkey=$videoId";
+      logger.i("Pornhub: Using yt-dlp to extract streams from $videoPageUrl");
+      final ytStreams = await ytDlpExtractStreams(videoPageUrl);
+      if (ytStreams != null && ytStreams.isNotEmpty) {
+        logger.i("Pornhub: yt-dlp extracted ${ytStreams.length} streams");
+        return UniversalVideoMetadata(
+            iD: videoId,
+            m3u8Uris: ytStreams,
+            playbackHttpHeaders: {
+              "User-Agent": httpUserAgent,
+              "Referer": "https://www.pornhub.com/"
+            },
+            title: uvp.title,
+            plugin: this,
+            universalVideoPreview: uvp,
+            authorID: uvp.authorID ?? "",
+            authorName: uvp.authorName);
+      }
+      logger.w("Pornhub: yt-dlp failed, falling back to manual extraction");
+    }
+
     Uri videoMetadata = Uri.parse(_videoEndpoint + videoId);
     logger.d("Requesting $videoMetadata");
     var response = await _performGetRequest(

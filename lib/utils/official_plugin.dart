@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_hls_parser/flutter_hls_parser.dart';
 import 'package:html/dom.dart';
 
+import '/services/yt_dlp_extractor.dart';
 import '/utils/global_vars.dart';
 
 /// This class contains internal functions / pre-implemented functions for official plugins
@@ -36,6 +37,19 @@ abstract class OfficialPlugin {
 
   // No need for actual dispose in OfficialPlugins
   void dispose() {}
+
+  /// Check if yt-dlp extraction is enabled for this plugin
+  @nonVirtual
+  Future<bool> checkUseYtDlp(String codeName) async {
+    return (await sharedStorage.getBool("yt_dlp_enabled_$codeName")) ?? false;
+  }
+
+  /// Extract stream URLs via yt-dlp for a given video page URL.
+  /// Returns null if yt-dlp is not available or extraction fails.
+  @nonVirtual
+  Future<Map<int, Uri>?> ytDlpExtractStreams(String pageUrl) async {
+    return await YtDlpExtractorService.instance.getStreamUrls(pageUrl);
+  }
 
   /// Parse a master m3u8 into media m3u8s
   Future<Map<int, Uri>> parseM3U8(Uri playListUri) async {

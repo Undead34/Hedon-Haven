@@ -17,6 +17,7 @@ import '/services/icon_manager.dart';
 import '/services/plugin_manager.dart';
 import '/services/shared_prefs_manager.dart';
 import '/services/update_manager.dart';
+import '/services/yt_dlp_extractor.dart';
 import '/ui/screens/fake_apps/fake_reminders.dart';
 import '/ui/screens/fake_apps/fake_settings.dart';
 import '/ui/screens/home.dart';
@@ -45,6 +46,8 @@ void main() async {
   await PluginManager.init();
   // Icons are not critical to startup -> don't await
   downloadPluginIcons();
+  // Pre-initialize yt-dlp in background for faster stream extraction
+  YtDlpExtractorService.instance.initialize();
   await processArgs();
   logger.i("Starting flutter process");
   runApp(const ViewerApp());

@@ -40,7 +40,7 @@ android {
         applicationId = "com.hedon_haven.viewer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -48,10 +48,12 @@ android {
 
     signingConfigs {
         getByName("debug") {
-            keyAlias = keystorePropertiesDebug["keyAlias"] as String?
-            keyPassword = keystorePropertiesDebug["keyPassword"] as String?
-            storeFile = keystorePropertiesDebug["storeFile"]?.let { file(it as String) }
-            storePassword = keystorePropertiesDebug["storePassword"] as String?
+            if (keystorePropertiesFileDebug.exists()) {
+                keyAlias = keystorePropertiesDebug["keyAlias"] as String?
+                keyPassword = keystorePropertiesDebug["keyPassword"] as String?
+                storeFile = keystorePropertiesDebug["storeFile"]?.let { file(it as String) }
+                storePassword = keystorePropertiesDebug["storePassword"] as String?
+            }
         }
         create("release") {
             keyAlias = keystorePropertiesRelease["keyAlias"] as String?
@@ -84,6 +86,12 @@ android {
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
+    }
+
+    packaging {
+        jniLibs {
+            pickFirsts.add("**/libffmpeg.so")
+        }
     }
 }
 
