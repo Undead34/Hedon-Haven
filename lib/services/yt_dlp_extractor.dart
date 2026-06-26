@@ -1,7 +1,8 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io';
 
 import 'package:extractor/extractor.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '/utils/global_vars.dart';
 
@@ -62,8 +63,16 @@ class YtDlpExtractorService {
       if (!ok) return null;
     }
     try {
-      logger.i("Extracting streams via yt-dlp for: $pageUrl");
-      final info = await _youtubeDL.getVideoInfo(pageUrl);
+      final dir = await getApplicationDocumentsDirectory();
+      final cookieFile = File('${dir.path}/yt_dlp_cookies.txt');
+      final hasCookies = await cookieFile.exists();
+
+      logger.i("Extracting streams via yt-dlp for: $pageUrl${hasCookies ? ' (with cookies)' : ''}");
+      
+      final info = hasCookies
+          ? await _youtubeDL.getVideoInfoWithOptions(pageUrl, ["--cookies", cookieFile.path])
+          : await _youtubeDL.getVideoInfo(pageUrl);
+          
       if (info.formats == null || info.formats!.isEmpty) {
         logger.w("yt-dlp returned no formats for: $pageUrl");
         return null;

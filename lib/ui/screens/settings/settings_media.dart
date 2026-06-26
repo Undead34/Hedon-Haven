@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '/services/yt_dlp_extractor.dart';
 import '/ui/utils/toast_notification.dart';
@@ -16,6 +20,7 @@ class MediaScreen extends StatefulWidget {
 class _MediaScreenState extends State<MediaScreen> {
   String? _ytDlpVersion;
   bool _ytDlpUpdating = false;
+  bool _hasCookies = false;
 
   @override
   void initState() {
@@ -29,8 +34,14 @@ class _MediaScreenState extends State<MediaScreen> {
       await ytDlp.initialize();
     }
     final version = await ytDlp.getYtDlpVersion();
+    final dir = await getApplicationDocumentsDirectory();
+    final cookieFile = File('${dir.path}/yt_dlp_cookies.txt');
+    final hasCookies = await cookieFile.exists();
     if (mounted) {
-      setState(() => _ytDlpVersion = version);
+      setState(() {
+        _ytDlpVersion = version;
+        _hasCookies = hasCookies;
+      });
     }
   }
 
@@ -46,6 +57,35 @@ class _MediaScreenState extends State<MediaScreen> {
         showToast("Failed to update yt-dlp", context);
       }
     }
+  }
+
+  Future<void> _importCookies() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+    );
+    if (result != null && result.files.single.path != null) {
+      final source = File(result.files.single.path!);
+      final dir = await getApplicationDocumentsDirectory();
+      final dest = File('${dir.path}/yt_dlp_cookies.txt');
+      await source.copy(dest.path);
+      setState(() {
+        _hasCookies = true;
+      });
+      if (mounted) showToast("Cookies imported successfully", context);
+    }
+  }
+
+  Future<void> _clearCookies() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final dest = File('${dir.path}/yt_dlp_cookies.txt');
+    if (await dest.exists()) {
+      await dest.delete();
+    }
+    setState(() {
+      _hasCookies = false;
+    });
+    if (mounted) showToast("Cookies cleared", context);
   }
 
   @override
@@ -211,11 +251,32 @@ class _MediaScreenState extends State<MediaScreen> {
               Text("Updating yt-dlp...",
                   style: Theme.of(context).textTheme.bodySmall)
             ])),
-      if (ytDlp.isReady && !_ytDlpUpdating)
+      if (ytDlp.isReady && !_ytDlpUpdating) ...[
+        Row(
+          children: [
+            TextButton.icon(
+                onPressed: _updateYtDlp,
+                icon: const Icon(Icons.update, size: 18),
+                label: const Text("Update yt-dlp")),
+            const Spacer(),
+            if (_hasCookies) ...[
+              const Text("Cookies loaded",
+                  style: TextStyle(color: Colors.green, fontSize: 12)),
+              IconButton(
+                icon: const Icon(Icons.delete_outline,
+                    size: 18, color: Colors.red),
+                onPressed: _clearCookies,
+                tooltip: "Clear cookies",
+              ),
+            ]
+          ],
+        ),
         TextButton.icon(
-            onPressed: _updateYtDlp,
-            icon: Icon(Icons.update, size: 18),
-            label: Text("Update yt-dlp")),
+            onPressed: _importCookies,
+            icon: const Icon(Icons.cookie, size: 18),
+            label: Text(
+                _hasCookies ? "Replace cookies.txt" : "Import cookies.txt")),
+      ],
       SizedBox(height: 4),
       Text(
           "When enabled per plugin, yt-dlp is used to extract video stream URLs "
